@@ -58,7 +58,6 @@ var cfgImageSize = config_server.get('limits_image_size');
 var cfgImageDownloadTimeout = config_server.get('limits_image_download_timeout');
 var cfgRedisPrefix = config.get('services.CoAuthoring.redis.prefix');
 var cfgTokenEnableBrowser = config.get('services.CoAuthoring.token.enable.browser');
-const cfgTokenEnableRequestOutbox = config.get('services.CoAuthoring.token.enable.request.outbox');
 const cfgForgottenFiles = config_server.get('forgottenfiles');
 const cfgForgottenFilesName = config_server.get('forgottenfilesname');
 const cfgOpenProtectedFile = config_server.get('openProtectedFile');
@@ -222,7 +221,8 @@ function* saveParts(cmd, filename) {
   var saveType = cmd.getSaveType();
   if (SAVE_TYPE_COMPLETE_ALL !== saveType) {
     let ext = pathModule.extname(filename);
-    filename = pathModule.basename(filename, ext) + (cmd.getSaveIndex() || '') + ext;
+    let saveIndex = parseInt(cmd.getSaveIndex()) || 1;//prevent path traversal
+    filename = pathModule.basename(filename, ext) + saveIndex + ext;
   }
   if ((SAVE_TYPE_PART_START === saveType || SAVE_TYPE_COMPLETE_ALL === saveType) && !cmd.getSaveKey()) {
     yield* addRandomKeyTaskCmd(cmd);
@@ -484,7 +484,7 @@ function* commandImgurls(conn, cmd, outputData) {
       //todo multiple url case
       let url = checkJwtRes.decoded.url;
       urls = [url];
-      if (cfgTokenEnableRequestOutbox) {
+      if (utils.canIncludeOutboxAuthorization(url)) {
         authorization = utils.fillJwtForRequest({url: url});
       }
     } else {
