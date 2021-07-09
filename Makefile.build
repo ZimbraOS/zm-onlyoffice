@@ -22,6 +22,8 @@ stage-zimbra-onlyoffice-pkg: downloads
 	mkdir -p build/stage/zimbra-onlyoffice/opt/zimbra/onlyoffice
 	cp -r downloads/onlyoffice	build/stage/zimbra-onlyoffice/opt/zimbra/
 	chmod +x build/stage/zimbra-onlyoffice/opt/zimbra/onlyoffice/bin/jq
+	rm -rf build/stage/zimbra-onlyoffice/opt/zimbra/onlyoffice/.DS_Store
+	rm -rf build/stage/zimbra-onlyoffice/opt/zimbra/onlyoffice/._.DS_Store
 	
 zimbra-onlyoffice-pkg: stage-zimbra-onlyoffice-pkg
 	./pkg-build.pl \
@@ -29,9 +31,7 @@ zimbra-onlyoffice-pkg: stage-zimbra-onlyoffice-pkg
         --pkg-release=1 \
         --pkg-name=zimbra-onlyoffice \
         --pkg-summary="Zimbra onlyoffice package" \
-	--pkg-installs='/opt/zimbra/onlyoffice/*' \
-	--pkg-installs='/opt/zimbra/onlyoffice/.DS_Store' \
-	--pkg-installs='/opt/zimbra/onlyoffice/._.DS_Store'
+	--pkg-installs='/opt/zimbra/onlyoffice/*'
 		
 
 downloads:
