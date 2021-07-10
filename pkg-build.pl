@@ -654,6 +654,8 @@ sub Build()
       push( @pkg_type_opts, "-b" ) if ( $CFG{OUT_TYPE} eq "binary" );
       push( @pkg_type_opts, "-S" ) if ( $CFG{OUT_TYPE} eq "source" );
       open(my $fd, ">>$CFG{OUT_TEMP_DIR}/$CFG{PKG_NAME}/debian/rules");
+      print $fd "override_dh_strip: \n";
+      print $fd "	cp -r \$\$(pwd)/opt/zimbra/onlyoffice/documentserver/server/DocService/docservice \$\$(pwd)/debian/zimbra-onlyoffice/opt/zimbra/onlyoffice/documentserver/server/DocService/docservice \n";
       print $fd "override_dh_strip_nondeterminism: \n";
       print $fd "override_dh_shlibdeps: \n";
       close($fd);
