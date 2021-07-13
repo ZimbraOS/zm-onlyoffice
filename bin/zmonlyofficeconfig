@@ -51,38 +51,34 @@ generate_random()
   CharArray=(${digits[*]} ${lower[*]} ${upper[*]})
   ArrayLength=${#CharArray[*]}
   password=""
-  for i in `seq 1 $length`
+  while [ $length -gt 0 ]
   do
-          index=$(($RANDOM%$ArrayLength))
-          char=${CharArray[$index]}
-          password=${password}${char}
+    index=$(($RANDOM%$ArrayLength))
+    char=${CharArray[$index]}
+    password=${password}${char}
+    ((length--))
   done
-  echo $password
-
+  echo "$password"
 }
 
 update_db_config()
 {
   #port
   config_mysql_port=$(su - zimbra -c "zmlocalconfig -x -s mysql_port")
-  if [ ! -z "$config_mysql_port" ]; then
+  if [ -n "$config_mysql_port" ]; then
     IFS='='
     read -ra arr <<< "$config_mysql_port"
     mysql_port=$(echo "${arr[1]}" | xargs)
-    
   fi
-
 
   content=$(${zmjq} --argjson mysql_port "$mysql_port" '.services.CoAuthoring.sql.dbPort=$mysql_port' ${defaultjson_path})
   echo "${content}" > ${defaultjson_path}
-
   #user
   config_mysql_user=$(su - zimbra -c "zmlocalconfig -x -s zimbra_mysql_user")
-  if [ ! -z "$config_mysql_user" ]; then
+  if [ -n "$config_mysql_user" ]; then
     IFS='='
     read -ra arr <<< "$config_mysql_user"
     zimbra_mysql_user=$(echo "${arr[1]}" | xargs)
-    
   fi
 
   content=$(${zmjq} --arg zimbra_mysql_user "$zimbra_mysql_user" '.services.CoAuthoring.sql.dbUser=$zimbra_mysql_user' ${defaultjson_path})
@@ -90,11 +86,10 @@ update_db_config()
 
   #password
   config_mysql_pass=$(su - zimbra -c "zmlocalconfig -x -s zimbra_mysql_password")
-  if [ ! -z "$config_mysql_pass" ]; then
+  if [ -n "$config_mysql_pass" ]; then
     IFS='='
     read -ra arr <<< "$config_mysql_pass"
     zimbra_mysql_password=$(echo "${arr[1]}" | xargs)
-    
   fi
 
   content=$(${zmjq} --arg zimbra_mysql_password "$zimbra_mysql_password" '.services.CoAuthoring.sql.dbPass=$zimbra_mysql_password' ${defaultjson_path})
@@ -161,14 +156,9 @@ update_jwt_config()
 
 set_jwt_secret()
 {
-  if [ -z "$1" ]; then
-    echo "Setting Random Secret..."
-    jwtsecret=$(generate_random)
-    update_jwt_config $jwtsecret
-  else
-    jwtsecret=$1
-    update_jwt_config $jwtsecret
-  fi
+  echo "Setting Random Secret..."
+  jwtsecret=$(generate_random)
+  update_jwt_config "$jwtsecret"
 }
 
 generate_fonts_data()
@@ -221,7 +211,7 @@ case "$type" in
       IFS=':'
       read -ra arr <<< "$jwtsecret"
       document_editing_JWT_secret=$(echo "${arr[1]}" | xargs)
-      update_jwt_config $document_editing_JWT_secret
+      update_jwt_config "$document_editing_JWT_secret"
     fi
 
     update_certificate_path
@@ -241,7 +231,7 @@ case "$type" in
     fi
     jwtsecret="$2"
 
-    update_jwt_config $jwtsecret
+    update_jwt_config "$jwtsecret"
     exit $STATUS
   ;;
 
